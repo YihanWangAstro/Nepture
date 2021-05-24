@@ -75,8 +75,17 @@ void job(size_t thread_id, size_t scattering_num) {
 
         args.add_stop_condition(scattering_t_end);
 
-        args.add_stop_point_operation(
-            [&](auto& ptc, auto h) { print(post_flyby_file, jupiter1_orb, ',', jupiter2_orb, '\n', ptc, '\n'); });
+        args.add_stop_point_operation([&](auto& ptc, auto h) {
+            auto [aj1, ej1, Lj1] =
+                calc_a_e_L(ptc.mass(0), ptc.mass(1), ptc.pos(0) - ptc.pos(1), ptc.vel(0) - ptc.vel(1));
+
+            auto [aj2, ej2, Lj2] =
+                calc_a_e_L(ptc.mass(0), ptc.mass(2), ptc.pos(0) - ptc.pos(2), ptc.vel(0) - ptc.vel(2));
+
+            auto [an, en, Ln] = calc_a_e_L(ptc.mass(0), ptc.mass(3), ptc.pos(0) - ptc.pos(3), ptc.vel(0) - ptc.vel(3));
+            print(post_flyby_file, jupiter1_orb, ',', jupiter2_orb, ',', neptune_orb, ',', aj1, ',', ej1, ',', Lj1, ',',
+                  aj2, ',', ej2, ',', Lj2, ',', an, ',', en, ',', Ln, '\n');
+        });
 
         sim.run(args);
     }
