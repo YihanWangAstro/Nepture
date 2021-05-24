@@ -83,8 +83,10 @@ void job(size_t thread_id, size_t scattering_num) {
                 calc_a_e_L(ptc.mass(0), ptc.mass(2), ptc.pos(0) - ptc.pos(2), ptc.vel(0) - ptc.vel(2));
 
             auto [an, en, Ln] = calc_a_e_L(ptc.mass(0), ptc.mass(3), ptc.pos(0) - ptc.pos(3), ptc.vel(0) - ptc.vel(3));
+
+            auto L_p = calc::calc_isolated_angular_momentum(ptc, std::array{0, 1, 2, 3});
             print(post_flyby_file, jupiter1_orb, ',', jupiter2_orb, ',', neptune_orb, ',', incident_orb, ',', aj1, ',',
-                  ej1, ',', Lj1, ',', aj2, ',', ej2, ',', Lj2, ',', an, ',', en, ',', Ln, '\n');
+                  ej1, ',', Lj1, ',', aj2, ',', ej2, ',', Lj2, ',', an, ',', en, ',', Ln, ',', L_p, '\n');
         });
 
         sim.run(args);
