@@ -1,5 +1,5 @@
-#include "/home/yihanw/repositories/SpaceHub/src/spaceHub.hpp"
-#include "/home/yihanw/repositories/SpaceHub/src/taskflow/taskflow.hpp"
+#include "SpaceHub/src/spaceHub.hpp"
+#include "SpaceHub/src/taskflow/taskflow.hpp"
 using namespace hub;
 using namespace unit;
 using namespace callback;
@@ -94,7 +94,7 @@ void job(size_t thread_id, size_t scattering_num) {
 }
 
 int main() {
-    size_t n = 5000000;  // total scattering number
+    size_t n = 1000000;  // total scattering number
     size_t job_num = 40;
 
     tf::Executor executor;
