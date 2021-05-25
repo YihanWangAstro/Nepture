@@ -16,7 +16,7 @@ double calc_max_impact_parameter(double Q_max, double v_inf, double M_tot) {
 
 void job(size_t thread_id, size_t scattering_num) {
     double v_inf = 3.66_kms;
-    double r_start = 500_AU;
+    double r_start = 1500_AU;
     double a_j1 = 5_AU;
     double a_j2 = 15_AU;
     double a_n = 45_AU;
@@ -58,7 +58,7 @@ void job(size_t thread_id, size_t scattering_num) {
         // create binary star
         // create scattering hyperbolic orbit
 
-        double b_max = calc_max_impact_parameter(a_n * 2, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
+        double b_max = calc_max_impact_parameter(a_n * 5, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
 
         auto incident_orb =
             scattering::incident_orbit(M_tot(star, jupiter1, jupiter2, neptune), intruder.mass, v_inf, b_max, r_start);
