@@ -47,18 +47,20 @@ void job(size_t thread_id, size_t scattering_num) {
 
         move_particles(jupiter1_orb, jupiter1);
 
-        move_to_COM_frame(star, jupiter1);
+        // move_to_COM_frame(star, jupiter1);
 
         move_particles(jupiter2_orb, jupiter2);
 
-        move_to_COM_frame(star, jupiter1, jupiter2);
+        // move_to_COM_frame(star, jupiter1, jupiter2);
 
         move_particles(neptune_orb, neptune);
+
+        move_to_COM_frame(star, jupiter1, jupiter2, neptune);
 
         // create binary star
         // create scattering hyperbolic orbit
 
-        double b_max = calc_max_impact_parameter(a_n * 5, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
+        double b_max = calc_max_impact_parameter(a_n * 4, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
 
         auto incident_orb =
             scattering::incident_orbit(M_tot(star, jupiter1, jupiter2, neptune), intruder.mass, v_inf, b_max, r_start);
