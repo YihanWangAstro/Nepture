@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+#SBATCH --job-name=long-ext10
+#SBATCH --output=long-ext10.txt
+#SBATCH --ntasks-per-node=24
+#SBATCH --nodes=1
+#SBATCH --time=7-00:00:00
+#SBATCH -p extended-24core
+
+module load shared
+module load gcc/9.2.0
+
+cd /gpfs/scratch/rperna/Neptune/code
+
+./longterm ext10

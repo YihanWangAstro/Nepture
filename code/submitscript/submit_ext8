@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+#SBATCH --job-name=long-ext8
+#SBATCH --output=long-ext8.txt
+#SBATCH --ntasks-per-node=28
+#SBATCH --nodes=1
+#SBATCH --time=7-00:00:00
+#SBATCH -p extended-28core
+
+module load shared
+module load gcc/9.2.0
+
+cd /gpfs/scratch/rperna/Neptune/code
+
+./longterm ext8

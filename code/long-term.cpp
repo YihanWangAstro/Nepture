@@ -15,7 +15,7 @@ double calc_max_impact_parameter(double Q_max, double v_inf, double M_tot) {
 }
 
 void job(std::string job_name, size_t thread_id, size_t scattering_num) {
-    double v_inf = 3.66_kms;
+    double v_inf = 0.1 * 3.66_kms;
     double r_start = 1500_AU;
     double a_j1 = 5_AU;
     double a_j2 = 15_AU;
