@@ -178,8 +178,8 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
 }
 
 int main(int argc, char** argv) {
-    size_t n = 100;  // total scattering number
-    size_t job_num = 12;
+    size_t n = 1000000;  // total scattering number
+    size_t job_num = 40;
 
     tf::Executor executor;
 
