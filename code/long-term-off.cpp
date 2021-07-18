@@ -41,8 +41,8 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
         Particle neptune{17.147_Me};
         Particle intruder{1_Ms};
 
-        double TDE_R = 7.1492e4_km * pow(star.mass / jupiter1.mass, 1.0 / 3);
-
+        // double TDE_R = 7.1492e4_km * pow(star.mass / jupiter1.mass, 1.0 / 3);
+        double coll_R = 1.1_Rs;
         // create planetary system with two giant planets
         double planet_inc = random::Uniform(0, consts::pi);
 
@@ -132,12 +132,12 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
                     return true;
                 }
 
-                if (0 < a && a * (1 - e) <= TDE_R) {  // tidal disruption
+                if (0 < a && a * (1 - e) <= coll_R) {  // tidal disruption
                     event_tag = 2;
                     return true;
                 }
 
-                if (0 < a && a * (1 - e) <= 0.05_AU) {  // hot jupiter candidate
+                if (0 < a && a * (1 - e) <= 0.05_AU && e < 0.1) {  // hot jupiter candidate
                     event_tag = 1;
                     return true;
                 }

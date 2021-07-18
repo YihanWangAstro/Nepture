@@ -5,7 +5,7 @@ using namespace unit;
 using namespace callback;
 using namespace force;
 using namespace orbit;
-using f = Interactions<NewtonianGrav, Tidal>;                        // add static tidal force
+using f = Interactions<NewtonianGrav, Tidal, PN1>;                   // add static tidal force
 using Solver = methods::DefaultMethod<f, particles::TideParticles>;  // use the corresponding tidal particles
 using Particle = Solver::Particle;
 
@@ -21,9 +21,16 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
     double a_j2 = 15_AU;
     double a_n = 45_AU;
 
-    std::fstream post_flyby_file("long-term-" + job_name + "-" + std::to_string(thread_id) + ".txt", std::ios::out);
+    std::fstream post_flyby_file5("full-5-" + job_name + "-" + std::to_string(thread_id) + ".txt", std::ios::out);
+    std::fstream post_flyby_file6("full-6-" + job_name + "-" + std::to_string(thread_id) + ".txt", std::ios::out);
+    std::fstream post_flyby_file7("full-7-" + job_name + "-" + std::to_string(thread_id) + ".txt", std::ios::out);
+    std::fstream post_flyby_file8("full-8-" + job_name + "-" + std::to_string(thread_id) + ".txt", std::ios::out);
 
-    print(post_flyby_file, std::setprecision(16));
+    std::fstream* files[4] = {&post_flyby_file5, &post_flyby_file6, &post_flyby_file7, &post_flyby_file8};
+
+    for (auto f : files) {
+        print(*f, std::setprecision(16));
+    }
 
     print(std::cout, "starting job on thread ", thread_id, " \n");
 
@@ -34,7 +41,7 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
         Particle neptune{17.147_Me, 24622_km, 0, 0};
         Particle intruder{1_Ms, 1_Rs, 0, 0};
 
-        double TDE_R = jupiter1.radius * pow(star.mass / jupiter1.mass, 1.0 / 3);
+        double coll_R = star.radius + jupiter1.radius;
 
         // create planetary system with two giant planets
         double planet_inc = random::Uniform(0, consts::pi);
@@ -61,16 +68,10 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
 
         // create binary star
         // create scattering hyperbolic orbit
-        double b_max = calc_max_impact_parameter(a_n * 4, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
-        double b_min = calc_max_impact_parameter(a_j1 / 100, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
+        double b_max = calc_max_impact_parameter(a_n * 5, v_inf, M_tot(star, jupiter1, jupiter2, neptune, intruder));
 
-        double b_exp_min = log10(b_min);
-        double b_exp_max = log10(b_max);
-
-        auto b = pow(10, random::Uniform(b_exp_min, b_exp_max));
-        auto w = random::Uniform(0, 2 * consts::pi);
-        auto incident_orb = orbit::Hyperbolic(M_tot(star, jupiter1, jupiter2, neptune), intruder.mass, v_inf, b, w, 0.0,
-                                              0.0, r_start, orbit::Hyper::in);
+        auto incident_orb =
+            scattering::incident_orbit(M_tot(star, jupiter1, jupiter2, neptune), intruder.mass, v_inf, b_max, r_start);
 
         move_particles(incident_orb, intruder);
 
@@ -117,6 +118,8 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
 
             int event_tag = 0;
 
+            auto init_ptc = long_sim.particles();
+
             auto stop_check = [&](auto& ptc, auto h) -> bool {
                 auto [a, e] = calc_a_e(ptc.mass(0) + ptc.mass(1), ptc.pos(0) - ptc.pos(1), ptc.vel(0) - ptc.vel(1));
 
@@ -129,12 +132,12 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
                     return true;
                 }
 
-                if (0 < a && a * (1 - e) <= TDE_R) {  // tidal disruption
+                if (0 < a && a * (1 - e) <= coll_R) {  // collision
                     event_tag = 2;
                     return true;
                 }
 
-                if (0 < a && a < 0.1_AU && e < 0.1) {  // hot jupiter formation
+                if (0 < a && a * (1 - e) <= 0.05_AU && e < 0.1) {  // hot jupiter candidate
                     event_tag = 1;
                     return true;
                 }
@@ -143,14 +146,28 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
 
             long_args.add_stop_condition(StepSlice(stop_check, 1000));
 
-            long_args.add_start_point_operation([&](auto& ptc, auto h) {
-                print(post_flyby_file, jupiter1_orb, ',', jupiter2_orb, ',', neptune_orb, ',', incident_orb, '\n');
-                print(post_flyby_file, ptc);
-            });
+            double time_stamp[4] = {1e5_year, 1e6_year, 1e7_year, 1e10_year};
+            auto writing_file = files;
+            double* out_time = time_stamp;
+
+            auto write_callback = [&](auto& ptc, auto h) {
+                if (ptc.time() > *out_time) {
+                    print(**writing_file, jupiter1_orb, ',', jupiter2_orb, ',', neptune_orb, ',', incident_orb, '\n');
+                    print(**writing_file, init_ptc);
+                    print(**writing_file, event_tag, ',', ptc);
+                    **writing_file << std::endl;
+                    writing_file++;
+                    out_time++;
+                }
+            };
+
+            long_args.add_operation(write_callback);
 
             long_args.add_stop_point_operation([&](auto& ptc, auto h) {
-                print(post_flyby_file, event_tag, ',', ptc);
-                post_flyby_file << std::endl;
+                print(**writing_file, jupiter1_orb, ',', jupiter2_orb, ',', neptune_orb, ',', incident_orb, '\n');
+                print(**writing_file, init_ptc);
+                print(**writing_file, event_tag, ',', ptc);
+                **writing_file << std::endl;
             });
 
             long_sim.run(long_args);
@@ -161,8 +178,8 @@ void job(std::string job_name, size_t thread_id, size_t scattering_num) {
 }
 
 int main(int argc, char** argv) {
-    size_t n = 1000000;  // total scattering number
-    size_t job_num = 40;
+    size_t n = 100;  // total scattering number
+    size_t job_num = 12;
 
     tf::Executor executor;
 
